@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Editor</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:#1e1e1e;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
+
+#main{display:flex;width:100%;height:calc(100% - 22px)}
+#editor-wrap{flex:1;height:100%;min-width:0;position:relative}
+#editor-wrap.hidden{display:none}
+#preview-wrap{display:none;height:100%;overflow-y:auto;background:#1e1e1e;color:#d4d4d4;padding:32px 48px;font-size:15px;line-height:1.7}
+#preview-wrap.visible{display:block;border-left:1px solid #333;flex:1;min-width:0}
+#preview-wrap.fullscreen{display:block;flex:1}
+
+#preview-wrap h1,#preview-wrap h2,#preview-wrap h3,#preview-wrap h4{color:#569cd6;margin:20px 0 10px;font-weight:600}
+#preview-wrap h1{font-size:28px;border-bottom:1px solid #333;padding-bottom:8px}
+#preview-wrap h2{font-size:22px}
+#preview-wrap h3{font-size:18px}
+#preview-wrap p{margin:6px 0}
+#preview-wrap a{color:#4fc1ff;text-decoration:none}
+#preview-wrap a:hover{text-decoration:underline}
+#preview-wrap code{background:#2d2d2d;padding:2px 6px;border-radius:3px;font-family:'Cascadia Code','Fira Code','Consolas',monospace;font-size:13px;color:#ce9178}
+#preview-wrap pre{background:#2d2d2d;padding:16px;border-radius:6px;overflow-x:auto;margin:10px 0}
+#preview-wrap pre code{background:none;padding:0;color:#d4d4d4;font-size:13px}
+#preview-wrap blockquote{border-left:3px solid #569cd6;padding:4px 16px;color:#8b949e;margin:10px 0}
+#preview-wrap ul,#preview-wrap ol{padding-left:24px;margin:6px 0}
+#preview-wrap li{margin:2px 0}
+#preview-wrap table{border-collapse:collapse;margin:10px 0;width:100%}
+#preview-wrap th,#preview-wrap td{border:1px solid #444;padding:8px 12px;text-align:left}
+#preview-wrap th{background:#2d2d2d;font-weight:600}
+#preview-wrap img{max-width:100%;border-radius:4px}
+#preview-wrap hr{border:none;border-top:1px solid #333;margin:20px 0}
+#preview-wrap input[type=checkbox]{margin-right:6px}
+#preview-edit-hint{display:none;position:sticky;top:0;background:#1e1e1e;padding:12px 0;margin:-32px 0 16px;border-bottom:1px solid #333}
+#preview-wrap.fullscreen #preview-edit-hint{display:block}
+
+#tb-btn{position:fixed;bottom:30px;right:16px;z-index:100;width:36px;height:36px;border-radius:18px;background:rgba(255,255,255,.06);color:rgba(255,255,255,.5);border:1px solid rgba(255,255,255,.08);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:all .2s;backdrop-filter:blur(8px);user-select:none;line-height:1}
+#tb-btn:hover{background:rgba(255,255,255,.12);color:rgba(255,255,255,.85);border-color:rgba(255,255,255,.15);transform:scale(1.05)}
+
+#tb-panel{display:none;position:fixed;bottom:74px;right:16px;z-index:99;background:#252526;border:1px solid #3e3e42;border-radius:8px;padding:6px;box-shadow:0 8px 24px rgba(0,0,0,.4);min-width:195px}
+#tb-panel.show{display:block}
+
+.tb-btn{display:flex;align-items:center;gap:10px;width:100%;padding:8px 12px;background:none;border:none;border-radius:4px;color:#ccc;font-size:13px;cursor:pointer;text-align:left;transition:background .15s;font-family:inherit}
+.tb-btn:hover{background:#2a2d2e;color:#fff}
+.tb-btn .ico{width:18px;text-align:center;font-size:14px}
+.tb-btn .key{margin-left:auto;color:#666;font-size:11px}
+
+#file-inp{display:none}
+
+#sb{position:fixed;bottom:0;left:0;right:0;z-index:50;height:22px;background:#1e1e1e;border-top:1px solid #2d2d2d;color:#888;display:flex;align-items:center;padding:0 10px;font-size:12px;gap:20px;user-select:none}
+#sb span{white-space:nowrap}
+
+#dropping{display:none;position:fixed;inset:0;z-index:200;background:rgba(0,122,204,.15);border:2px dashed #007acc;pointer-events:none;align-items:center;justify-content:center;font-size:24px;color:#007acc}
+</style>
+</head>
+<body>
+
+<div id="main">
+  <div id="editor-wrap">
+    <div id="dropping">Drop file to open</div>
+  </div>
+  <div id="preview-wrap"></div>
+</div>
+
+<div id="tb-btn">☰</div>
+<div id="tb-panel">
+  <button class="tb-btn" id="b-open"><span class="ico">📂</span>Open File<span class="key">Ctrl+O</span></button>
+  <button class="tb-btn" id="b-save"><span class="ico">💾</span>Download<span class="key">Ctrl+S</span></button>
+  <button class="tb-btn" id="b-preview"><span class="ico">👁</span>Preview<span class="key">Ctrl+Shift+V</span></button>
+  <button class="tb-btn" id="b-clear"><span class="ico">🗑</span>Clear</button>
+</div>
+
+<input type="file" id="file-inp" accept=".md,.txt,.markdown,.html,.css,.js,.ts,.json,.xml,.yaml,.yml,.py,.rs,.go,.java,.c,.cpp,.sh,.toml,.ini,.cfg">
+
+<div id="sb">
+  <span id="sb-lang">Markdown</span>
+  <span id="sb-pos">Ln 1, Col 1</span>
+  <span id="sb-words">0 words</span>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs/loader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script>
+(function(){
+var editor, mode = 'edit';
+var LANG_MAP = {md:'markdown',markdown:'markdown',txt:'plaintext',js:'javascript',ts:'typescript',jsx:'javascript',tsx:'typescript',html:'html',css:'css',scss:'scss',less:'less',json:'json',xml:'xml',yaml:'yaml',yml:'yaml',py:'python',rs:'rust',go:'go',java:'java',c:'c',cpp:'cpp',h:'c',hpp:'cpp',sh:'shell',bash:'shell',zsh:'shell',toml:'plaintext',ini:'ini',cfg:'ini',conf:'ini',sql:'sql',php:'php',rb:'ruby',swift:'swift',kt:'kotlin',scala:'scala',r:'r'};
+
+function updatePreview(){
+  if(!editor) return;
+  var pw = document.getElementById('preview-wrap');
+  if(!pw.classList.contains('visible') && !pw.classList.contains('fullscreen')) return;
+  pw.innerHTML = '<div id="preview-edit-hint"><span style="color:#888">Preview mode — </span><a href="#" onclick="togglePreview()" style="color:#4fc1ff;cursor:pointer">Back to edit</a></div>' + marked.parse(editor.getValue() || '');
+}
+
+function togglePreview(){
+  var pw = document.getElementById('preview-wrap');
+  var ew = document.getElementById('editor-wrap');
+  if(mode === 'edit'){
+    mode = 'split';
+    pw.className = 'visible';
+    ew.style.flex = '1';
+    updatePreview();
+  } else if(mode === 'split'){
+    mode = 'preview';
+    pw.className = 'fullscreen';
+    ew.classList.add('hidden');
+    updatePreview();
+  } else {
+    mode = 'edit';
+    pw.className = '';
+    ew.classList.remove('hidden');
+    ew.style.flex = '';
+  }
+  if(editor) setTimeout(function(){ editor.layout(); }, 10);
+  document.getElementById('tb-panel').classList.remove('show');
+}
+
+function saveFile(){
+  if(!editor) return;
+  var c = editor.getValue();
+  var b = new Blob([c], {type: 'text/plain'});
+  var u = URL.createObjectURL(b);
+  var a = document.createElement('a');
+  a.href = u; a.download = 'document.md'; a.click();
+  URL.revokeObjectURL(u);
+}
+
+function readFile(file){
+  var r = new FileReader();
+  r.onload = function(e){
+    if(!editor) return;
+    editor.setValue(e.target.result);
+    var ext = file.name.split('.').pop().toLowerCase();
+    var lang = LANG_MAP[ext] || 'markdown';
+    monaco.editor.setModelLanguage(editor.getModel(), lang);
+    document.getElementById('sb-lang').textContent = lang.charAt(0).toUpperCase() + lang.slice(1);
+    document.getElementById('tb-panel').classList.remove('show');
+    updatePreview();
+  };
+  r.readAsText(file);
+}
+
+// Monaco init
+require.config({ paths: { vs: 'https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs' }});
+require(['vs/editor/editor.main'], function(){
+  var saved = localStorage.getItem('md-editor-content') || '';
+
+  editor = monaco.editor.create(document.getElementById('editor-wrap'), {
+    value: saved,
+    language: 'markdown',
+    theme: 'vs-dark',
+    automaticLayout: true,
+    wordWrap: 'on',
+    minimap: { enabled: true, scale: 1, showSlider: 'mouseover' },
+    fontSize: 15,
+    lineNumbers: 'on',
+    scrollBeyondLastLine: false,
+    renderWhitespace: 'selection',
+    padding: { top: 16 },
+    tabSize: 2,
+    cursorBlinking: 'smooth',
+    cursorSmoothCaretAnimation: 'on',
+    smoothScrolling: true,
+    bracketPairColorization: { enabled: true },
+    guides: { indentation: true, bracketPairs: true },
+  });
+
+  // Cursor position
+  editor.onDidChangeCursorPosition(function(e){
+    document.getElementById('sb-pos').textContent = 'Ln ' + e.position.lineNumber + ', Col ' + e.position.column;
+  });
+
+  // Auto-save + word count + preview
+  var saveTimer, previewTimer;
+  editor.onDidChangeModelContent(function(){
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(function(){
+      try { localStorage.setItem('md-editor-content', editor.getValue()); } catch(_){}
+    }, 400);
+
+    clearTimeout(previewTimer);
+    previewTimer = setTimeout(updatePreview, 300);
+
+    var text = editor.getValue();
+    var words = text.trim() ? text.trim().split(/\s+/).length : 0;
+    document.getElementById('sb-words').textContent = words + ' words';
+  });
+
+  updatePreview();
+});
+
+// Toolbar toggle
+document.getElementById('tb-btn').addEventListener('click', function(e){
+  e.stopPropagation();
+  document.getElementById('tb-panel').classList.toggle('show');
+});
+document.addEventListener('click', function(e){
+  var p = document.getElementById('tb-panel');
+  var b = document.getElementById('tb-btn');
+  if(!p.contains(e.target) && !b.contains(e.target)) p.classList.remove('show');
+});
+
+// Toolbar buttons
+document.getElementById('b-open').addEventListener('click', function(){
+  document.getElementById('file-inp').click();
+});
+document.getElementById('b-save').addEventListener('click', function(){
+  saveFile();
+  document.getElementById('tb-panel').classList.remove('show');
+});
+document.getElementById('b-preview').addEventListener('click', function(){
+  togglePreview();
+});
+document.getElementById('b-clear').addEventListener('click', function(){
+  if(confirm('Clear all content?')) {
+    if(editor) editor.setValue('');
+    document.getElementById('tb-panel').classList.remove('show');
+  }
+});
+
+// File input
+document.getElementById('file-inp').addEventListener('change', function(e){
+  var f = e.target.files[0];
+  if(f) readFile(f);
+  this.value = '';
+});
+
+// Drag & drop
+var dropEl = document.getElementById('dropping');
+var dragCnt = 0;
+document.addEventListener('dragenter', function(e){
+  e.preventDefault(); e.stopPropagation();
+  dragCnt++;
+  if(dragCnt === 1) dropEl.style.display = 'flex';
+});
+document.addEventListener('dragleave', function(e){
+  e.preventDefault(); e.stopPropagation();
+  dragCnt--;
+  if(dragCnt <= 0){ dragCnt = 0; dropEl.style.display = 'none'; }
+});
+document.addEventListener('dragover', function(e){
+  e.preventDefault(); e.stopPropagation();
+});
+document.addEventListener('drop', function(e){
+  e.preventDefault(); e.stopPropagation();
+  dragCnt = 0;
+  dropEl.style.display = 'none';
+  var f = e.dataTransfer.files[0];
+  if(f) readFile(f);
+});
+
+// Keyboard shortcuts
+document.addEventListener('keydown', function(e){
+  var mod = e.ctrlKey || e.metaKey;
+  if(mod && e.key === 's'){
+    e.preventDefault();
+    saveFile();
+  }
+  if(mod && e.key === 'o'){
+    e.preventDefault();
+    document.getElementById('file-inp').click();
+  }
+  if(mod && e.shiftKey && e.key === 'V'){
+    e.preventDefault();
+    togglePreview();
+  }
+});
+
+// Expose togglePreview globally for preview back-link
+window.togglePreview = togglePreview;
+
+})();
+</script>
+</body>
+</html>
