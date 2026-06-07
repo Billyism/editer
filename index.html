@@ -60,16 +60,6 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-famil
 #preview-wrap input[type=checkbox]{margin-right:6px}
 #preview-wrap h1:first-child,#preview-wrap h2:first-child,#preview-wrap h3:first-child{margin-top:0}
 
-#preview-wrap pre{position:relative}
-#preview-wrap .hljs{background:transparent!important}
-#preview-wrap .anchor{opacity:0;color:var(--lk);text-decoration:none;margin-right:6px;font-size:.85em;transition:opacity .15s}
-#preview-wrap h1:hover .anchor,#preview-wrap h2:hover .anchor,#preview-wrap h3:hover .anchor,#preview-wrap h4:hover .anchor,#preview-wrap h5:hover .anchor,#preview-wrap h6:hover .anchor{opacity:1}
-#preview-wrap .anchor:hover{opacity:1}
-#preview-wrap .copy-btn{position:absolute;top:8px;right:8px;background:var(--hbg);border:1px solid var(--bd);color:var(--hfg);padding:2px 8px;font-size:12px;border-radius:4px;cursor:pointer;opacity:0;transition:opacity .15s;line-height:1.6;z-index:10;font-family:inherit}
-#preview-wrap pre:hover .copy-btn{opacity:1}
-#preview-wrap .copy-btn.copied{background:var(--lk);color:#fff;opacity:1}
-#preview-wrap .math-error{color:var(--cc);font-style:italic}
-
 #file-inp{display:none}
 
 #sb{position:fixed;bottom:0;left:0;right:0;z-index:50;height:22px;background:var(--sbb);border-top:1px solid var(--sbl);color:var(--sbf);display:flex;align-items:center;padding:0 10px;font-size:12px;gap:20px;user-select:none}
@@ -77,9 +67,6 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-famil
 
 #dropping{display:none;position:fixed;inset:0;z-index:200;background:var(--dp);border:2px dashed var(--lk);pointer-events:none;align-items:center;justify-content:center;font-size:24px;color:var(--lk)}
 </style>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.11.0/styles/github-dark.min.css" media="(prefers-color-scheme:dark)">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.11.0/styles/github.min.css" media="(prefers-color-scheme:light)">
 </head>
 <body>
 
@@ -109,8 +96,6 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-famil
   <span id="sb-words">0 words</span>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/highlight.js@11.11.0/highlight.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs/loader.js"></script>
 <script>
@@ -144,26 +129,11 @@ document.getElementById('h-preview').title = i18n.preview + ' (Ctrl+Shift+V)';
 document.getElementById('h-clear').title = i18n.clear;
 document.getElementById('dropping').textContent = i18n.dropFile;
 
-function escapeHtml(t){var d=document.createElement('div');d.textContent=t;return d.innerHTML}
-
-function renderMath(s){var b=[],i=0;if(typeof katex==='undefined') return{text:s,blocks:b};s=s.replace(/\$\$([\s\S]*?)\$\$/g,function(m,c){var p='%%M'+(i++)+'%%';b.push({d:true,c:c,p:p});return p});s=s.replace(/(?<!\$)\$(?!\$)(?=\S)([\s\S]*?\S)\$(?!\$|\d)/g,function(m,c){if(/[\\{}_^]/.test(c)||/\\[a-zA-Z]/.test(c)){var p='%%M'+(i++)+'%%';b.push({d:false,c:c,p:p});return p}return m});return{text:s,blocks:b}}
-
 function updatePreview(){
   if(!editor) return;
   var pw = document.getElementById('preview-wrap');
   if(!pw.classList.contains('visible') && !pw.classList.contains('fullscreen')) return;
-  var raw = editor.getValue() || '';
-  var result = renderMath(raw);
-  var html = marked.parse(result.text,{breaks:true,gfm:true});
-  for(var j=0;j<result.blocks.length;j++){var b=result.blocks[j];try{var r=katex.renderToString(b.c,{displayMode:b.d,throwOnError:false,output:'html'});html=html.replace(b.p,function(){return r})}catch(e){html=html.replace(b.p,function(){return '<code class=\"math-error\">'+escapeHtml(b.c)+'</code>'})}}
-  pw.innerHTML = html;
-  afterRender(pw);
-}
-
-function afterRender(pw){
-  pw.querySelectorAll('pre code').forEach(function(el){if(!el.classList.contains('hljs'))try{hljs.highlightElement(el)}catch(e){}});
-  pw.querySelectorAll('h1,h2,h3,h4,h5,h6').forEach(function(h){if(h.querySelector('.anchor'))return;var id=(h.textContent||'').toLowerCase().replace(/[^\w\u4e00-\u9fff]+/g,'-').replace(/^-|-$/g,'')||'heading';h.id=id;var a=document.createElement('a');a.className='anchor';a.href='#'+id;a.textContent='#';h.insertBefore(a,h.firstChild)});
-  pw.querySelectorAll('pre').forEach(function(pre){if(pre.querySelector('.copy-btn'))return;var code=pre.querySelector('code');if(!code)return;var btn=document.createElement('button');btn.className='copy-btn';btn.textContent='Copy';btn.addEventListener('click',function(){var t=code.textContent||'';navigator.clipboard.writeText(t).then(function(){btn.textContent='Copied!';btn.classList.add('copied');setTimeout(function(){btn.textContent='Copy';btn.classList.remove('copied')},2000)}).catch(function(){btn.textContent='Failed';setTimeout(function(){btn.textContent='Copy'},2000)})});pre.appendChild(btn)});
+  pw.innerHTML = marked.parse(editor.getValue() || '');
 }
 
 function togglePreview(){
