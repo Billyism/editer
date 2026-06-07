@@ -1,59 +1,73 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Editor</title>
+<title>在线编辑器</title>
+<meta name="description" content="免费在线 Markdown 编辑器，支持 Monaco Editor 语法高亮、实时预览、文件拖拽。">
+<meta name="keywords" content="在线编辑器, Markdown编辑器, 文本编辑器, Monaco Editor">
+<meta name="msvalidate.01" content="094ECD52C4255ECD057DE8C73671632D" />
+<meta property="og:title" content="在线编辑器">
+<meta property="og:description" content="免费在线 Markdown 编辑器，基于 Monaco Editor，支持语法高亮和实时预览。">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://billyism.github.io/editer/">
+<meta name="theme-color" content="#1e1e1e" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect x='10' y='10' width='80' height='80' rx='14' fill='%231e1e1e'/%3E%3Cpath d='M25 72L30 38L38 55L45 33L52 55L60 38L65 72' fill='none' stroke='%23569cd6' stroke-width='5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 <style>
+:root{--bg:#1e1e1e;--fg:#d4d4d4;--bd:#333;--bd2:#2d2d2d;--cb:#2d2d2d;--cc:#ce9178;--lk:#4fc1ff;--hd:#569cd6;--tbb:#252526;--tbl:#3e3e42;--tbh:#2a2d2e;--sbb:#1e1e1e;--sbl:#2d2d2d;--sbf:#888;--dp:rgba(0,122,204,.15);--bqc:#569cd6;--bqt:#8b949e;--thb:#2d2d2d;--pvb:#1e1e1e;--pvf:#d4d4d4;--hrc:#333}
+@media(prefers-color-scheme:light){:root{--bg:#fff;--fg:#333;--bd:#e0e0e0;--bd2:#eee;--cb:#f6f8fa;--cc:#c7254e;--lk:#0366d6;--hd:#1a1a1a;--tbb:#f3f3f3;--tbl:#ddd;--tbh:#ddd;--sbb:#f3f3f3;--sbl:#e0e0e0;--sbf:#666;--dp:rgba(3,102,214,.1);--bqc:#0366d6;--bqt:#6a737d;--thb:#f6f8fa;--pvb:#fff;--pvf:#333;--hrc:#e0e0e0}}
+
 *{margin:0;padding:0;box-sizing:border-box}
-html,body{width:100%;height:100%;overflow:hidden;background:#1e1e1e;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:var(--fg)}
 
 #main{display:flex;width:100%;height:calc(100% - 22px)}
 #editor-wrap{flex:1;height:100%;min-width:0;position:relative}
 #editor-wrap.hidden{display:none}
-#preview-wrap{display:none;height:100%;overflow-y:auto;background:#1e1e1e;color:#d4d4d4;padding:32px 48px;font-size:15px;line-height:1.7}
-#preview-wrap.visible{display:block;border-left:1px solid #333;flex:1;min-width:0}
+#preview-wrap{display:none;height:100%;overflow-y:auto;background:var(--pvb);color:var(--pvf);padding:32px 48px;font-size:15px;line-height:1.7}
+#preview-wrap.visible{display:block;border-left:1px solid var(--bd);flex:1;min-width:0}
 #preview-wrap.fullscreen{display:block;flex:1}
 
-#preview-wrap h1,#preview-wrap h2,#preview-wrap h3,#preview-wrap h4{color:#569cd6;margin:20px 0 10px;font-weight:600}
-#preview-wrap h1{font-size:28px;border-bottom:1px solid #333;padding-bottom:8px}
+#preview-wrap h1,#preview-wrap h2,#preview-wrap h3,#preview-wrap h4{color:var(--hd);margin:20px 0 10px;font-weight:600}
+#preview-wrap h1{font-size:28px;border-bottom:1px solid var(--bd);padding-bottom:8px}
 #preview-wrap h2{font-size:22px}
 #preview-wrap h3{font-size:18px}
 #preview-wrap p{margin:6px 0}
-#preview-wrap a{color:#4fc1ff;text-decoration:none}
+#preview-wrap a{color:var(--lk);text-decoration:none}
 #preview-wrap a:hover{text-decoration:underline}
-#preview-wrap code{background:#2d2d2d;padding:2px 6px;border-radius:3px;font-family:'Cascadia Code','Fira Code','Consolas',monospace;font-size:13px;color:#ce9178}
-#preview-wrap pre{background:#2d2d2d;padding:16px;border-radius:6px;overflow-x:auto;margin:10px 0}
-#preview-wrap pre code{background:none;padding:0;color:#d4d4d4;font-size:13px}
-#preview-wrap blockquote{border-left:3px solid #569cd6;padding:4px 16px;color:#8b949e;margin:10px 0}
+#preview-wrap code{background:var(--cb);padding:2px 6px;border-radius:3px;font-family:'Cascadia Code','Fira Code','Consolas',monospace;font-size:13px;color:var(--cc)}
+#preview-wrap pre{background:var(--cb);padding:16px;border-radius:6px;overflow-x:auto;margin:10px 0}
+#preview-wrap pre code{background:none;padding:0;color:var(--pvf);font-size:13px}
+#preview-wrap blockquote{border-left:3px solid var(--bqc);padding:4px 16px;color:var(--bqt);margin:10px 0}
 #preview-wrap ul,#preview-wrap ol{padding-left:24px;margin:6px 0}
 #preview-wrap li{margin:2px 0}
 #preview-wrap table{border-collapse:collapse;margin:10px 0;width:100%}
-#preview-wrap th,#preview-wrap td{border:1px solid #444;padding:8px 12px;text-align:left}
-#preview-wrap th{background:#2d2d2d;font-weight:600}
+#preview-wrap th,#preview-wrap td{border:1px solid var(--bd);padding:8px 12px;text-align:left}
+#preview-wrap th{background:var(--thb);font-weight:600}
 #preview-wrap img{max-width:100%;border-radius:4px}
-#preview-wrap hr{border:none;border-top:1px solid #333;margin:20px 0}
+#preview-wrap hr{border:none;border-top:1px solid var(--hrc);margin:20px 0}
 #preview-wrap input[type=checkbox]{margin-right:6px}
-#preview-edit-hint{display:none;position:sticky;top:0;background:#1e1e1e;padding:12px 0;margin:-32px 0 16px;border-bottom:1px solid #333}
-#preview-wrap.fullscreen #preview-edit-hint{display:block}
+.preview-bar{display:flex;align-items:center;gap:12px;padding:8px 0;margin-bottom:16px;border-bottom:1px solid var(--bd);font-size:13px;position:sticky;top:0;background:var(--pvb);z-index:1}
+.preview-bar a{color:var(--lk);text-decoration:none;cursor:pointer}
+.preview-bar a:hover{text-decoration:underline}
 
-#tb-btn{position:fixed;bottom:30px;right:16px;z-index:100;width:36px;height:36px;border-radius:18px;background:rgba(255,255,255,.06);color:rgba(255,255,255,.5);border:1px solid rgba(255,255,255,.08);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:all .2s;backdrop-filter:blur(8px);user-select:none;line-height:1}
-#tb-btn:hover{background:rgba(255,255,255,.12);color:rgba(255,255,255,.85);border-color:rgba(255,255,255,.15);transform:scale(1.05)}
+#tb-btn{position:fixed;bottom:30px;right:16px;z-index:100;width:36px;height:36px;border-radius:18px;background:var(--bd2);color:var(--sbf);border:1px solid var(--tbl);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:all .2s;backdrop-filter:blur(8px);user-select:none;line-height:1}
+#tb-btn:hover{background:var(--tbh);color:var(--fg);border-color:var(--fg);transform:scale(1.05)}
 
-#tb-panel{display:none;position:fixed;bottom:74px;right:16px;z-index:99;background:#252526;border:1px solid #3e3e42;border-radius:8px;padding:6px;box-shadow:0 8px 24px rgba(0,0,0,.4);min-width:195px}
+#tb-panel{display:none;position:fixed;bottom:74px;right:16px;z-index:99;background:var(--tbb);border:1px solid var(--tbl);border-radius:8px;padding:6px;box-shadow:0 8px 24px rgba(0,0,0,.4);min-width:195px}
 #tb-panel.show{display:block}
 
-.tb-btn{display:flex;align-items:center;gap:10px;width:100%;padding:8px 12px;background:none;border:none;border-radius:4px;color:#ccc;font-size:13px;cursor:pointer;text-align:left;transition:background .15s;font-family:inherit}
-.tb-btn:hover{background:#2a2d2e;color:#fff}
+.tb-btn{display:flex;align-items:center;gap:10px;width:100%;padding:8px 12px;background:none;border:none;border-radius:4px;color:var(--fg);font-size:13px;cursor:pointer;text-align:left;transition:background .15s;font-family:inherit;opacity:.8}
+.tb-btn:hover{background:var(--tbh);color:var(--fg);opacity:1}
 .tb-btn .ico{width:18px;text-align:center;font-size:14px}
-.tb-btn .key{margin-left:auto;color:#666;font-size:11px}
+.tb-btn .key{margin-left:auto;color:var(--sbf);font-size:11px}
 
 #file-inp{display:none}
 
-#sb{position:fixed;bottom:0;left:0;right:0;z-index:50;height:22px;background:#1e1e1e;border-top:1px solid #2d2d2d;color:#888;display:flex;align-items:center;padding:0 10px;font-size:12px;gap:20px;user-select:none}
+#sb{position:fixed;bottom:0;left:0;right:0;z-index:50;height:22px;background:var(--sbb);border-top:1px solid var(--sbl);color:var(--sbf);display:flex;align-items:center;padding:0 10px;font-size:12px;gap:20px;user-select:none}
 #sb span{white-space:nowrap}
 
-#dropping{display:none;position:fixed;inset:0;z-index:200;background:rgba(0,122,204,.15);border:2px dashed #007acc;pointer-events:none;align-items:center;justify-content:center;font-size:24px;color:#007acc}
+#dropping{display:none;position:fixed;inset:0;z-index:200;background:var(--dp);border:2px dashed var(--lk);pointer-events:none;align-items:center;justify-content:center;font-size:24px;color:var(--lk)}
 </style>
 </head>
 <body>
@@ -67,10 +81,10 @@ html,body{width:100%;height:100%;overflow:hidden;background:#1e1e1e;font-family:
 
 <div id="tb-btn">☰</div>
 <div id="tb-panel">
-  <button class="tb-btn" id="b-open"><span class="ico">📂</span>Open File<span class="key">Ctrl+O</span></button>
-  <button class="tb-btn" id="b-save"><span class="ico">💾</span>Download<span class="key">Ctrl+S</span></button>
-  <button class="tb-btn" id="b-preview"><span class="ico">👁</span>Preview<span class="key">Ctrl+Shift+V</span></button>
-  <button class="tb-btn" id="b-clear"><span class="ico">🗑</span>Clear</button>
+  <button class="tb-btn" id="b-open"><span class="ico">📂</span><span class="lbl">Open File</span><span class="key">Ctrl+O</span></button>
+  <button class="tb-btn" id="b-save"><span class="ico">💾</span><span class="lbl">Download</span><span class="key">Ctrl+S</span></button>
+  <button class="tb-btn" id="b-preview"><span class="ico">👁</span><span class="lbl">Preview</span><span class="key">Ctrl+Shift+V</span></button>
+  <button class="tb-btn" id="b-clear"><span class="ico">🗑</span><span class="lbl">Clear</span></button>
 </div>
 
 <input type="file" id="file-inp" accept=".md,.txt,.markdown,.html,.css,.js,.ts,.json,.xml,.yaml,.yml,.py,.rs,.go,.java,.c,.cpp,.sh,.toml,.ini,.cfg">
@@ -88,11 +102,37 @@ html,body{width:100%;height:100%;overflow:hidden;background:#1e1e1e;font-family:
 var editor, mode = 'edit';
 var LANG_MAP = {md:'markdown',markdown:'markdown',txt:'plaintext',js:'javascript',ts:'typescript',jsx:'javascript',tsx:'typescript',html:'html',css:'css',scss:'scss',less:'less',json:'json',xml:'xml',yaml:'yaml',yml:'yaml',py:'python',rs:'rust',go:'go',java:'java',c:'c',cpp:'cpp',h:'c',hpp:'cpp',sh:'shell',bash:'shell',zsh:'shell',toml:'plaintext',ini:'ini',cfg:'ini',conf:'ini',sql:'sql',php:'php',rb:'ruby',swift:'swift',kt:'kotlin',scala:'scala',r:'r'};
 
+var isZh = (navigator.language||'').startsWith('zh');
+var i18n = {
+  title: isZh ? '在线编辑器' : 'Online Editor',
+  openFile: isZh ? '打开文件' : 'Open File',
+  download: isZh ? '下载' : 'Download',
+  preview: isZh ? '预览' : 'Preview',
+  clear: isZh ? '清空' : 'Clear',
+  ln: isZh ? '行' : 'Ln',
+  col: isZh ? '列' : 'Col',
+  words: isZh ? '字' : 'words',
+  backToEdit: isZh ? '返回编辑' : 'Back to edit',
+  dropFile: isZh ? '拖拽文件到此处' : 'Drop file to open',
+  previewLabel: isZh ? '预览' : 'Preview',
+  clearConfirm: isZh ? '确定清空？' : 'Clear all content?',
+};
+
+function getTheme(){return window.matchMedia('(prefers-color-scheme:dark)').matches?'vs-dark':'vs'}
+
+// Apply i18n
+document.title = i18n.title;
+document.querySelector('#b-open .lbl').textContent = i18n.openFile;
+document.querySelector('#b-save .lbl').textContent = i18n.download;
+document.querySelector('#b-preview .lbl').textContent = i18n.preview;
+document.querySelector('#b-clear .lbl').textContent = i18n.clear;
+document.getElementById('dropping').textContent = i18n.dropFile;
+
 function updatePreview(){
   if(!editor) return;
   var pw = document.getElementById('preview-wrap');
   if(!pw.classList.contains('visible') && !pw.classList.contains('fullscreen')) return;
-  pw.innerHTML = '<div id="preview-edit-hint"><span style="color:#888">Preview mode — </span><a href="#" onclick="togglePreview()" style="color:#4fc1ff;cursor:pointer">Back to edit</a></div>' + marked.parse(editor.getValue() || '');
+  pw.innerHTML = '<div class="preview-bar"><span>' + i18n.previewLabel + '</span><a href="#" onclick="togglePreview()">' + i18n.backToEdit + '</a></div>' + marked.parse(editor.getValue() || '');
 }
 
 function togglePreview(){
@@ -151,7 +191,7 @@ require(['vs/editor/editor.main'], function(){
   editor = monaco.editor.create(document.getElementById('editor-wrap'), {
     value: saved,
     language: 'markdown',
-    theme: 'vs-dark',
+    theme: getTheme(),
     automaticLayout: true,
     wordWrap: 'on',
     minimap: { enabled: true, scale: 1, showSlider: 'mouseover' },
@@ -168,9 +208,14 @@ require(['vs/editor/editor.main'], function(){
     guides: { indentation: true, bracketPairs: true },
   });
 
+  // Follow system theme changes
+  window.matchMedia('(prefers-color-scheme:dark)').addEventListener('change',function(e){
+    monaco.editor.setTheme(e.matches?'vs-dark':'vs');
+  });
+
   // Cursor position
   editor.onDidChangeCursorPosition(function(e){
-    document.getElementById('sb-pos').textContent = 'Ln ' + e.position.lineNumber + ', Col ' + e.position.column;
+    document.getElementById('sb-pos').textContent = i18n.ln + ' ' + e.position.lineNumber + ', ' + i18n.col + ' ' + e.position.column;
   });
 
   // Auto-save + word count + preview
@@ -186,7 +231,7 @@ require(['vs/editor/editor.main'], function(){
 
     var text = editor.getValue();
     var words = text.trim() ? text.trim().split(/\s+/).length : 0;
-    document.getElementById('sb-words').textContent = words + ' words';
+    document.getElementById('sb-words').textContent = words + ' ' + i18n.words;
   });
 
   updatePreview();
@@ -215,7 +260,7 @@ document.getElementById('b-preview').addEventListener('click', function(){
   togglePreview();
 });
 document.getElementById('b-clear').addEventListener('click', function(){
-  if(confirm('Clear all content?')) {
+  if(confirm(i18n.clearConfirm)) {
     if(editor) editor.setValue('');
     document.getElementById('tb-panel').classList.remove('show');
   }
