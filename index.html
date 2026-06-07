@@ -124,6 +124,10 @@ body.serif-preview #preview-wrap{font-family:Georgia,'Noto Serif CJK SC','Songti
   <span id="sb-words">0 words</span>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/highlight.js@11.11.0/highlight.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dompurify@3.2.4/dist/purify.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs/loader.js"></script>
 <script>
@@ -147,12 +151,6 @@ var i18n = {
 };
 
 function getTheme(){return window.matchMedia('(prefers-color-scheme:dark)').matches?'vs-dark':'vs'}
-
-function loadAssets(cb){
-  var urls=['https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js','https://cdn.jsdelivr.net/npm/highlight.js@11.11.0/highlight.min.js','https://cdn.jsdelivr.net/npm/dompurify@3.2.4/dist/purify.min.js','https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js'];
-  var n=urls.length,d=0;
-  urls.forEach(function(u){var s=document.createElement('script');s.src=u;s.onload=function(){d++;if(d===n&&cb)cb()};s.onerror=function(){d++;if(d===n&&cb)cb()};document.head.appendChild(s)});
-}
 
 // Apply i18n
 document.title = i18n.title;
@@ -191,7 +189,6 @@ function afterRender(pw){
     pw.querySelectorAll('.language-mermaid').forEach(function(el){if(el.dataset.mermaidRendered) return;el.dataset.mermaidRendered='1';if(typeof mermaid==='undefined') return;mermaid.render('mm-'+Math.random().toString(36).slice(2,8),el.textContent).then(function(r){el.parentElement.innerHTML=r.svg;var sv=el.parentElement.querySelector('svg');if(sv) sv.style.maxWidth='100%'}).catch(function(e){el.textContent='[Mermaid error]'})});
   });
 }
-function pwVisible(){var p=document.getElementById('preview-wrap');return p&&(p.classList.contains('visible')||p.classList.contains('fullscreen'))}
 function togglePreview(){
   var pw = document.getElementById('preview-wrap');
   var ew = document.getElementById('editor-wrap');
@@ -250,7 +247,6 @@ require.config({ paths: { vs: 'https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0
 require(['vs/editor/editor.main'], function(){
   var saved = localStorage.getItem('md-editor-content') || '';
 
-  loadAssets(function(){if(typeof mermaid!=='undefined')mermaid.initialize({startOnLoad:false});if(pwVisible())updatePreview()});
   editor = monaco.editor.create(document.getElementById('editor-wrap'), {
     value: saved,
     language: 'markdown',
